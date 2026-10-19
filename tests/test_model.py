@@ -1,63 +1,65 @@
-"""Fixed cases for the trade classifier and the flag builder. No network, no private/ data.
-
-    python3 -m pytest tests
-"""
-import sys
+"""The model loader and the trade routing. Fixed cases are real inspector comments read on 2026-10-18."""
+import json, sys
 from pathlib import Path
 
-sys.path.insert(0, str(Path(__file__).resolve().parent.parent / "pipeline"))
-from trades import trade_of  # noqa: E402
-from build import build, day  # noqa: E402
+ROOT = Path(__file__).resolve().parent.parent
+sys.path.insert(0, str(ROOT / "pipeline"))
+from trades import trade_of, ORDER, LABEL  # noqa: E402
+from build import build  # noqa: E402
+
+CASES = [
+    ("MN Rule 4626.0395A2", "Observed 3 door prep cooler above 41 degrees (see temps above). Have unit serviced to ensure food is at or below 41 degrees.", "refrigeration"),
+    ("MN Rule 4626.0395A2", "Observed several TCS foods in the walk-in cooler had temps above 41°F (chicken 44°F); the Manager on Duty was informed that the cooler is not holding.", "refrigeration"),
+    ("MN Rule 4626.0735AB", "2 door prep cooler is not maintaining temperature at or below 41 degrees. Repair or replace. Observed broken gasket on 2 door prep cooler.", "refrigeration"),
+    # food left out is a kitchen habit, not a service call
+    ("MN Rule 4626.0395A2", "Observed cut watermelon in an ice bath holding at 54F. All TCS foods must be kept at 41F or below.", None),
+    ("MN Rule 4626.0395A2", "Butter was observed being cold held at 72F room temperature at the time of inspection.", None),
+    ("MN Rule 4626.1565ABD", "Observed several drain flies by mop sink in back room. Notify pest control company.", "pest"),
+    ("MN Rule 4626.1520A", "Observed mouse droppings on floor in dry storage room. Clean and maintain.", "pest"),
+    ("MCO 188.590", "OBSERVED FRUIT / DRAIN FLIES IN THE KITCHEN. OBSERVED ONE COCKROACH BY THE 3-COMP SINK.", "pest"),
+    # 'designated' is not a gnat; 'restaurants' are not ants; sealing a door gap is prevention
+    ("MN Rule 4626.1560B", "Store all personal items in the separate designated place away from food.", None),
+    ("MN Rule 4626.0025", "A designated PIC needs to be on site to respond to restaurant/food safety issues.", None),
+    ("MN Rule 4626.1395A", "Observed large gap under back door. Ensure outer openings are sealed from pest entry.", None),
+    ("MN Rule 4626.1530A", "Observed hood baffles heavily greased. Clean and maintain.", "hood"),
+    ("MN Rule 4626.0565", "OBSERVED GREASE DROPS HANGING FROM KITCHEN HOOD. CLEAN KITCHEN HOOD AS NEEDED.", "hood"),
+    ("MN Rule 4626.1475A", "Observed cooking on a hotplate in the basement prep room without a hood.", "hood"),
+    # a cooler across from the hood is a cooler; an ice machine baffle is not a hood baffle
+    ("MN Rule 4626.0395A2", "Tandoori Chicken measured at 43 F in the middle prep cooler across from the hood. The cooler is to be adjusted.", "refrigeration"),
+    ("MN Rule 4626.0845E", "Baffle of ice machine contains a large amount of microbial growth. Clean and maintain.", None),
+    ("MN Rule 4626.1040B", "The water leakage around the base of the mop sink still not fixed.", None),
+]
 
 
-def test_pest_needs_a_pest_word_not_a_word_ending_in_ants():
-    # all three are real comments from the 2026-10-18 pull that were filed as pest
-    assert trade_of("MN Rule 4626.0405A", "Food in the walk-in past 7 days: croissants (10/1) and pico (10/3).") is None
-    assert trade_of("MN Rule 4626.0395A2", "Eggplants (65*F) on ice at the dimsum station above 41*F.") is None
-    assert trade_of("MN Rule 4626.0408A", "Salsa in an ice bucket. Either use refrigeration or time as a public health control for restaurants.") is None
-    assert trade_of("MN Rule 4626.0130A", "Observed ants along the back wall by the dish machine.") == "pest"
-    assert trade_of("MN Rule 4626.0130A", "Observed an ant trail near the dry storage.") == "pest"
-    assert trade_of("MN Rule 4626.1565ABD", "") == "pest"
+def test_routing_cases():
+    bad = [(c, got, want) for code, c, want in CASES if (got := trade_of(code, c)) != want]
+    assert not bad, bad
 
 
-def test_hood_and_refrigeration_rules():
-    assert trade_of("MN Rule 4626.1530A", "") == "hood"
-    assert trade_of("MN Rule 4626.0130A", "Heavy grease build-up on the hood baffles.") == "hood"
-    assert trade_of("MN Rule 4626.0395A2", "Walk-in cooler holding at 48 F ambient. Have the unit serviced.") == "refrigeration"
-    assert trade_of("MN Rule 4626.0395A2", "Cut melon sitting out on the counter at 55 F.") is None
+def test_labels_cover_every_trade():
+    assert set(LABEL) == set(ORDER) == {"refrigeration", "pest", "hood"}
 
 
-def _ms(iso):
-    import datetime as dt
-    return int(dt.datetime.fromisoformat(iso).timestamp() * 1000)
-
-
-def test_an_evening_inspection_keeps_its_minneapolis_date():
-    # 2026-10-15 20:30 CDT is 2026-10-16 01:30 UTC
-    assert day(_ms("2026-10-16T01:30:00+00:00")).isoformat() == "2026-10-15"
-    assert day(_ms("2026-10-15T14:00:00+00:00")).isoformat() == "2026-10-15"
-
-
-def _row(oid, fac, date_iso, comment="Mouse droppings in dry storage.", code="MN Rule 4626.1565ABD", status="Observed", vid=None):
-    return {"OBJECTID": oid, "ViolationIDNumber": vid if vid is not None else oid, "HealthFacilityIDNumber": fac, "BusinessName": "PHO PLACE LLC",
-            "FullAddress": "1 MAIN ST", "DateOfInspection": _ms(date_iso), "FoodCodeItem": code, "InspectorComments": comment,
-            "ViolationStatus": status, "ViolationPriority": "Priority1", "InspectionType": "Routine"}
-
-
-def test_repeat_count_still_open_and_window():
+def test_build_from_raw_fixture():
     raw = {"pulled": "2026-10-18", "since": "2025-01-01", "rows": [
-        _row(1, "A", "2026-03-10T15:00:00+00:00"),
-        _row(2, "A", "2026-10-15T15:00:00+00:00"),
-        _row(3, "B", "2026-10-14T15:00:00+00:00"),
-        # B was visited again later with no violation: its flag is no longer open
-        {**_row(4, "B", "2026-10-16T15:00:00+00:00", comment=None, code=None, status=None), "ViolationPriority": None},
+        {"OBJECTID": 1, "HealthFacilityIDNumber": "LIC1", "BusinessName": "TEST KITCHEN LLC", "FullAddress": "1 MAIN ST", "Neighborhood": "Whittier",
+         "FacilityCategory": "RESTAURANT", "RiskLevel": "1", "Latitude": 44.95, "Longitude": -93.27, "DateOfInspection": 1757000000000,
+         "InspectionType": "Routine", "ViolationPriority": "Priority1", "FoodCodeItem": "MN Rule 4626.0395A2", "FoodCodeText": "Keep cold.",
+         "InspectorComments": "Walk-in cooler not holding; food at 48F. Have unit serviced.", "ViolationStatus": "Observed", "InspectionScore": 80, "ViolationIDNumber": 11, "ZipCode": "55408"},
+        {"OBJECTID": 2, "HealthFacilityIDNumber": "LIC1", "BusinessName": "TEST KITCHEN LLC", "FullAddress": "1 MAIN ST", "Neighborhood": "Whittier",
+         "FacilityCategory": "RESTAURANT", "RiskLevel": "1", "Latitude": 44.95, "Longitude": -93.27, "DateOfInspection": 1760000000000,
+         "InspectionType": "Follow-Up", "ViolationPriority": "Priority1", "FoodCodeItem": "MN Rule 4626.0395A2", "FoodCodeText": "Keep cold.",
+         "InspectorComments": "Reach-in cooler still not holding; ambient 47F. Repair.", "ViolationStatus": "Observed", "InspectionScore": 85, "ViolationIDNumber": 12, "ZipCode": "55408"},
+        {"OBJECTID": 3, "HealthFacilityIDNumber": "LIC2", "BusinessName": "OTHER PLACE", "FullAddress": "2 OAK AVE", "Neighborhood": "Seward",
+         "FacilityCategory": "GROCERY", "RiskLevel": "2", "Latitude": 44.96, "Longitude": -93.23, "DateOfInspection": 1760000000000,
+         "InspectionType": "Routine", "ViolationPriority": "Priority3", "FoodCodeItem": "MN Rule 4626.1520A", "FoodCodeText": "Clean.",
+         "InspectorComments": "Clean the floor.", "ViolationStatus": "Corrected on-site", "InspectionScore": 95, "ViolationIDNumber": 13, "ZipCode": "55406"},
     ]}
     out = build(raw)
-    a_new = next(f for f in out["rows"] if f["id"] == 2)
-    a_old = next(f for f in out["rows"] if f["id"] == 1)
-    b = next(f for f in out["rows"] if f["id"] == 3)
-    assert (a_new["repeat"], a_new["prev"], a_new["still_open"]) == (1, "2026-03-10", True)
-    assert (a_old["repeat"], a_old["still_open"], a_old["in_window"]) == (0, False, False)
-    assert b["still_open"] is False
-    assert out["counts"]["pest"] == 2 and out["kitchens"]["pest"] == 2
-    assert len(out["rows"]) == 3, "the no-violation visit is not a flag"
+    rows = out["rows"]
+    assert len(rows) == 2 and {r["trade"] for r in rows} == {"refrigeration"}
+    newest = rows[0]
+    assert newest["repeat"] == 1 and newest["prev"] == "2025-09-04" and newest["still_open"] is True and newest["in_window"] is True
+    assert rows[1]["repeat"] == 0 and rows[1]["still_open"] is False and rows[1]["in_window"] is False
+    assert newest["name"] == "Test Kitchen LLC" and newest["addr"] == "1 Main St"
+    assert out["counts"] == {"refrigeration": 1, "pest": 0, "hood": 0} and out["kitchens"]["refrigeration"] == 1

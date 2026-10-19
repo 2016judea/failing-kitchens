@@ -1,0 +1,24 @@
+# Weekly refresh: pull the city's inspection layer, rebuild the feed and the page, redeploy.
+# Mondays 12:00 UTC (7am Central). The bricks refresh job that used to carry this layer was
+# disabled 2026-10-02; this product pulls for itself. Needs the VERCEL_TOKEN repo secret.
+name: weekly refresh
+on:
+  schedule:
+    - cron: "0 12 * * 1"
+  workflow_dispatch:
+jobs:
+  refresh:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: python3 pipeline/pull.py
+      - run: python3 pipeline/build.py
+      - run: python3 scripts/publish.py
+      - run: python3 scripts/build_for.py
+      - run: pip install pytest && python3 -m pytest -q tests
+      - run: python3 scripts/deploy.py
+        env:
+          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}

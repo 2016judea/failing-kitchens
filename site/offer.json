@@ -1,0 +1,11 @@
+{
+  "product": "failing-kitchens",
+  "site": "https://failing-kitchens.vercel.app",
+  "price_usd": 40,
+  "launch": 1792800000,
+  "name": "Failing Kitchens: the full feed",
+  "short": "Failing Kitchens",
+  "thing": "full feed",
+  "description": "Every Minneapolis kitchen the health inspector flagged for a cooler out of temp, pests or a dirty hood since January 2025: address, the inspector's words, date, repeat count, still open or not. Refreshed weekly.",
+  "line": "The full feed, every flagged kitchen with its address, the inspector's words, repeat count and the spreadsheet, refreshed weekly, is $40, once."
+}
