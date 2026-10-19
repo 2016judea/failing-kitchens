@@ -1,0 +1,11 @@
+/private/
+.env
+.access_secret
+__pycache__/
+.DS_Store
+site/.vercel
+site/api/_full/
+/outreach/round1/ledger.csv
+/outreach/round1/drafts/
+tests/*.log
+.venv/
