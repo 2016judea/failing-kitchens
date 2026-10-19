@@ -27,6 +27,14 @@ CASES = [
     # a cooler across from the hood is a cooler; an ice machine baffle is not a hood baffle
     ("MN Rule 4626.0395A2", "Tandoori Chicken measured at 43 F in the middle prep cooler across from the hood. The cooler is to be adjusted.", "refrigeration"),
     ("MN Rule 4626.0845E", "Baffle of ice machine contains a large amount of microbial growth. Clean and maintain.", None),
+    # read 2026-10-19: grease on a floor or a cooler handle, a dish machine hood, a plan-review aside
+    ("MN Rule 4626.0855", "Observed some grease buildup on handles of coolers. Clean and maintain clean.", None),
+    ("MN Rule 4626.1520A", "Deep clean the following areas: -The floors near the downstairs hood with a stain/build up.", None),
+    ("MN Rule 4626.1530A", "Observed inside of dish machine hood dusty.    Clean and maintain.", None),
+    ("MN Rule 4626.1720A", "OBSERVED NEWLY INSTALLED ICE MACHINE. SUBMIT FOOD PLANS. NOTE: IF YOU ARE PLANNING ON MAKING MORE CHANGES TO THE RESTAURANT (E.G: HOOD, DISHWASHER, ETC.) SUBMIT ALL CHANGES IN ONE FOOD PLAN REVIEW APPLICATION.", None),
+    ("MN Rule 4626.1475D", "Hood system in the outdoor kitchen is missing a section of hood filters. Ensure all filters are in place.", "hood"),
+    ("MN Rule 4626.1530A", "Observed the warewash ductwork above the machine very dirty and in need of cleaning.", "hood"),
+    ("MN Rule 4626.1395D", "Observed unscreened doors in back of kitchen left open for ventilation. Screening needs to be provided.", None),
     ("MN Rule 4626.1040B", "The water leakage around the base of the mop sink still not fixed.", None),
 ]
 

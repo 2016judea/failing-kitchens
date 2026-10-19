@@ -57,7 +57,7 @@ Subject: bricks / {r['company']}
 
 {own['name']} in {own['hood']} was flagged by the Minneapolis health inspector on {own['date_h']}{f", {own['mi']} miles from your shop" if own['mi'] is not None else ""}. The inspector wrote: "{own['defect']}"
 
-Since January 2025 the city has flagged {r['n_window']} kitchens for {TRADE_NOUN[r['segment']]} in the last 30 days alone, and {r['n_repeat']} of them had been flagged for the same thing before.
+In the last 30 days the city flagged {r['n_window']} kitchens for {TRADE_NOUN[r['segment']]}. {r['n_repeat']} of them had been flagged for the same thing before.
 
 {n_free} of them are open to poke at, no login: {SITE}/for/{r['token']}/{price_line}
 
@@ -106,7 +106,7 @@ def main():
             status, why = "hold", "no flagged kitchen in this trade in the window"
         rows.append({"token": token(email), "segment": v["trade"], "company": v["name"], "name": "", "email": email, "email_source": v["email_source"],
                      "email_source_date": v["email_source_date"], "own": own, "status": status, "hold_reason": why, "city": v.get("city") or "",
-                     "n_window": D["counts"][v["trade"]], "n_repeat": sum(1 for f in win if f["trade"] == v["trade"] and f["repeat"] > 0)})
+                     "n_window": D["kitchens"][v["trade"]], "n_repeat": len({f["fac"] for f in win if f["trade"] == v["trade"] and f["repeat"] > 0})})
     # cap each segment at its target, nearest-own-record first, then assign A/B alternately within the segment
     out = []
     for seg, cap in TARGET.items():

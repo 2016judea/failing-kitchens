@@ -26,8 +26,13 @@ NOT_UNIT = re.compile(r"ice bath|room temp|on (the )?(counter|line|table|cart)|o
 PEST_EVIDENCE = re.compile(r"rodent|\bmice\b|\bmouse\b|\brats?\b|\bdroppings?\b|cockroach|\broach(es)?\b|\bflies\b|\bfly\b|"
                            r"fruit fl|drain fl|\bgnats?\b|infest|vermin|maggot|larvae|\bants?\b", re.I)
 PEST_CODES = {"MN Rule 4626.1565ABD", "MN Rule 4626.1565C", "MN Rule 4626.1570", "MCO 188.590", "MN Rule 4626.1385B"}
-HOOD = re.compile(r"\bhoods?\b|exhaust|baffles?\b|grease[- ]?(build|accum|laden|drip|trap|catch)|\bduct(s|work)?\b|ansul|"
-                  r"fire suppression|make[- ]?up air", re.I)
+HOOD = re.compile(r"\bhoods?\b|exhaust|baffles?\b|\bduct(s|work)?\b|ansul|fire suppression|make[- ]?up air|"
+                  r"ventilation (hood|system|duct|fan)s?|ventilation above", re.I)
+# A hood mentioned only as a landmark or an aside, or a dish machine's hood, is not a hood job
+# (hand-read 2026-10-19: ~30% of the first cut was grease on floors, cooler handles, or
+# "the cooler across from the hood"). Grease build-up alone no longer routes here.
+HOOD_NOISE = re.compile(r"\((e\.?g|ie)[^)]*\)|(across from|next to|near|by|beside|opposite) (the )?(\w+ )?hoods?\b|"
+                        r"dish ?(machine|washer)('s)? hoods?|plan[- ]?review", re.I)
 ICE = re.compile(r"ice (machine|maker)", re.I)
 HOOD_CODES = {"MN Rule 4626.1530A", "MN Rule 4626.1475A"}
 REFRIG_CODES = {"MN Rule 4626.0395A2", "MN Rule 4626.0735AB", "MN Rule 4626.0840C", "MN Rule 4626.0855"}
@@ -44,6 +49,7 @@ def trade_of(code, comment):
         return "pest"
     if code in REFRIG_CODES and UNIT.search(c) and UNIT_FAULT.search(c) and not NOT_UNIT.search(c):
         return "refrigeration"
-    if code in HOOD_CODES or (HOOD.search(c) and not (ICE.search(c) and not re.search(r"\bhoods?\b|exhaust", c, re.I))):
+    h = HOOD_NOISE.sub(" ", c)
+    if (code in HOOD_CODES and not HOOD_NOISE.search(c)) or (HOOD.search(h) and not (ICE.search(h) and not re.search(r"\bhoods?\b|exhaust", h, re.I))):
         return "hood"
     return None
