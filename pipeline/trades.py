@@ -1,0 +1,47 @@
+"""Which trade fixes a violation. Deterministic regexes over the inspector's own words and the
+rule cited, nothing learned. Tuned by hand-reading samples on 2026-10-18 (see tests/test_model.py
+for the fixed cases). A flag the regexes miss simply does not ship; a flag misfiled is the risk
+we accept and say so on the page.
+
+  refrigeration  a cooler, freezer, walk-in, prep table or ice machine that is out of temp or in
+                 disrepair. NOT food left out on a counter or in an ice bath: that is a kitchen
+                 habit, and no refrigeration tech can sell to it.
+  pest           evidence of pests (droppings, flies, roaches, mice) or a cited pest-control rule.
+  hood           a hood, baffles, exhaust duct, grease build-up or fire suppression, including
+                 equipment that must move under a hood or a hood that is missing.
+"""
+import re
+
+UNIT = re.compile(r"cooler|refrigerat|freezer|walk[- ]?in|reach[- ]?in|low[- ]?boy|prep (table|unit)|sandwich unit|"
+                  r"cold (well|line|rail|top|drawer)|coldwell|ice (machine|maker)|display case|merchandiser|\bunits?\b", re.I)
+UNIT_FAULT = re.compile(r"ambient|not (holding|maintain|working|cool|keep)|unable to (hold|maintain|keep)|repair|service|"
+                        r"broken|malfunction|compressor|condens|thermostat|out of order|do not use|discontinue use|"
+                        r"troubleshoot|(unit|cooler|freezer|refrigerator|walk[- ]?in|reach[- ]?in|lowboy|low boy|drawer)s?[^.]{0,40}"
+                        r"(above|at|reading|holding|was|were|is|are)[^.]{0,12}\d{2}\s?(°|\*|degrees| ?f\b)|gasket|door (seal|does not close)|"
+                        r"frost|ice build|leak", re.I)
+NOT_UNIT = re.compile(r"ice bath|room temp|on (the )?(counter|line|table|cart)|out of temperature control|left out|"
+                      r"sitting out|held out|time as a public health control|tphc|overstock|over ?fill|above the (fill|load) line|"
+                      r"lid open|door (was |left )?(open|ajar)", re.I)
+PEST_EVIDENCE = re.compile(r"\bpests?\b|rodent|\bmice\b|\bmouse\b|\brats?\b|droppings?|cockroach|roach(es)?\b|\bflies\b|\bfly\b|"
+                           r"fruit fl|drain fl|gnats?|infest|vermin|maggot|larvae|\bants?\b", re.I)
+PEST_CODES = {"MN Rule 4626.1565ABD", "MN Rule 4626.1565C", "MN Rule 4626.1570", "MCO 188.590", "MN Rule 4626.1385B"}
+HOOD = re.compile(r"\bhoods?\b|exhaust|baffles?\b|grease[- ]?(build|accum|laden|drip|trap|catch)|\bduct(s|work)?\b|ansul|"
+                  r"fire suppression|make[- ]?up air", re.I)
+HOOD_CODES = {"MN Rule 4626.1530A", "MN Rule 4626.1475A"}
+REFRIG_CODES = {"MN Rule 4626.0395A2", "MN Rule 4626.0735AB", "MN Rule 4626.0840C", "MN Rule 4626.0855"}
+
+LABEL = {"refrigeration": "Refrigeration / HVAC-R", "pest": "Pest control", "hood": "Hood & exhaust cleaning"}
+ORDER = ["refrigeration", "pest", "hood"]
+
+
+def trade_of(code, comment):
+    """-> 'refrigeration' | 'pest' | 'hood' | None. `code` is FoodCodeItem, `comment` InspectorComments."""
+    c = comment or ""
+    code = code or ""
+    if code in PEST_CODES or PEST_EVIDENCE.search(c):
+        return "pest"
+    if code in HOOD_CODES or HOOD.search(c):
+        return "hood"
+    if code in REFRIG_CODES and UNIT.search(c) and UNIT_FAULT.search(c) and not NOT_UNIT.search(c):
+        return "refrigeration"
+    return None
