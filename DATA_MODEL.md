@@ -80,3 +80,9 @@ one row per violation, 2023-01 to the week before last. Checked field by field:
 | repeat_count, last_flagged_before | derived | filled |
 | follow_up_due | **no field says a follow-up is scheduled.** `InspectionResult` only says Complete / Incomplete; the city does not publish the follow-up calendar. What CAN be read: whether a follow-up has already happened (`InspectionType = Follow-Up` at the same facility after the flag) and whether the flag was still `Observed` (not corrected on site). Shipped as `still_open`: a P1 observed and no later inspection on record. Named plainly on the page; not a schedule | **partly filled, reframed** |
 | vendor email | Overture Places (CC BY 4.0) for HVAC-R and pest; hood cleaners hand-sourced from their own sites | filled for HVAC-R (173) and pest (45); hood cleaning had 0 emails in Overture, so each was read off the firm's site and dated |
+
+**Note 2026-10-19 — "Priority 1 only" does not hold for two of three trades.** Of 2,236 routed
+flags since 2025-01, Priority 1 is 487 of 1,253 refrigeration, 8 of 559 pest, 4 of 424 hood: the
+city files most pest and hood findings as P2/P3. A P1-only feed would show a pest or hood vendor
+almost nothing. Shipped: every flag a trade can fix, with `priority` on each row and P1 tagged
+first on the page. `priority` stays the urgency field the model asked for; it is not a filter.

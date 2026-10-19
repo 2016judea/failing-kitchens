@@ -126,3 +126,16 @@ def test_for_pages_build_without_the_ledger_and_carry_no_email(tmp_path, monkeyp
     assert len(pages) == len(json.loads(bf.PAGES.read_text())) > 0
     for p in pages:
         assert not re.search(r"[\w.+-]+@[\w-]+\.[a-z]{2,}", p.read_text().split("window.FOR=")[1][:2000])
+
+
+def test_only_public_is_served_statically_and_the_bundle_only_reaches_the_function():
+    """outputDirectory "." served api/_full/full.json.gz as /api/%5Ffull/... (200) until 2026-10-19."""
+    import importlib.util
+    spec = importlib.util.spec_from_file_location("deploy", ROOT / "scripts/deploy.py")
+    dp = importlib.util.module_from_spec(spec); spec.loader.exec_module(dp)
+    rels = [str(r) for r, _ in dp.collect()]
+    assert json.loads((ROOT / "site/vercel.json").read_text())["outputDirectory"] == "public"
+    assert "public/index.html" in rels and "api/_full/full.json.gz" in rels
+    assert not [r for r in rels if r.startswith("public/") and ("_full" in r or r.startswith("public/api"))]
+    assert all(r.startswith(("public/", "api/")) or r in ("vercel.json", "offer.json") for r in rels)
+    assert '"outputDirectory": "public"' in (ROOT / "scripts/deploy.py").read_text()
