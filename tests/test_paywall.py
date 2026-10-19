@@ -112,3 +112,17 @@ def test_offer_is_one_plain_price():
     assert f"${o['price_usd']}, once" in o["line"]
     for word in ("discount", "sale", "limited", "bundle", "%"):
         assert word not in o["line"].lower()
+
+
+def test_for_pages_build_without_the_ledger_and_carry_no_email(tmp_path, monkeypatch):
+    """The weekly Action has no ledger (gitignored); /for/ pages must rebuild from for_pages.json."""
+    import importlib.util, re
+    spec = importlib.util.spec_from_file_location("build_for", ROOT / "scripts/build_for.py")
+    bf = importlib.util.module_from_spec(spec); spec.loader.exec_module(bf)
+    monkeypatch.setattr(bf, "LEDGER", tmp_path / "absent.csv")
+    monkeypatch.setattr(bf, "OUT", tmp_path / "for")
+    bf.main()
+    pages = list((tmp_path / "for").glob("*/index.html"))
+    assert len(pages) == len(json.loads(bf.PAGES.read_text())) > 0
+    for p in pages:
+        assert not re.search(r"[\w.+-]+@[\w-]+\.[a-z]{2,}", p.read_text().split("window.FOR=")[1][:2000])

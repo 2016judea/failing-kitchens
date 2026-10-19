@@ -16,19 +16,27 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
 LEDGER = ROOT / "outreach/round1/ledger.csv"
+# The ledger is gitignored (emails). The weekly GitHub Action has no ledger, so the page fields
+# (token, trade, variant, company, the public flag) are mirrored here, committed, no emails.
+PAGES = ROOT / "outreach/round1/for_pages.json"
 OUT = ROOT / "site/for"
 
 
 def main():
     page = (ROOT / "site/index.html").read_text()
+    keep = ("token", "segment", "variant", "company", "own_name", "own_hood", "own_date", "own_defect", "own_km")
+    if LEDGER.exists():
+        rows = [{k: r[k] for k in keep} for r in csv.DictReader(LEDGER.open())
+                if r["status"] in ("drafted", "sent", "scheduled")]
+        PAGES.write_text(json.dumps(rows, ensure_ascii=False, indent=1) + "\n")
+    elif PAGES.exists():
+        rows = json.loads(PAGES.read_text())
+    else:
+        print("no ledger and no for_pages.json; site/for left as is")
+        return
     shutil.rmtree(OUT, ignore_errors=True)
     n = 0
-    if not LEDGER.exists():
-        print("no ledger; 0 pages")
-        return
-    for r in csv.DictReader(LEDGER.open()):
-        if r["status"] not in ("drafted", "sent", "scheduled"):
-            continue
+    for r in rows:
         me = {"token": r["token"], "trade": r["segment"], "variant": r["variant"], "company": r["company"],
               "own": {"name": r["own_name"], "hood": r["own_hood"], "date": r["own_date"], "defect": r["own_defect"],
                       "km": (round(float(r["own_km"]) * 0.621, 1) if r.get("own_km") else None)}}

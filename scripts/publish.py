@@ -60,7 +60,8 @@ def main():
         json.dumps(ORDER), json.dumps(LABEL), json.dumps(RIVER), cols_js,
         len(win), kitchens, fmt(D["window_from"]), fmt(D["latest"]), still, rep, len(rows),
         LABEL["refrigeration"], LABEL["pest"], LABEL["hood"])
-    counts_line = ", ".join(f"<b>{D['counts'][t]}</b> for {LABEL[t].lower()}" for t in ORDER)
+    NOUN = {"refrigeration": "a cooler or freezer out of temp", "pest": "pests", "hood": "a dirty hood or exhaust"}
+    counts_line = ", ".join(f"<b>{D['counts'][t]}</b> for {NOUN[t]}" for t in ORDER)
     free = render(rows=rows, sample=sample, paid_fields=PAID, chip_key="trade", chip_order=ORDER, cfg_js=cfg, site="failing-kitchens", window_rows=win,
                   extra={"window": {"from": D["window_from"], "to": D["latest"], "counts": D["counts"], "kitchens": D["kitchens"]}},
                   subs={

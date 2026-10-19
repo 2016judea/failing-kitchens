@@ -9,3 +9,4 @@ site/api/_full/
 /outreach/round1/drafts/
 tests/*.log
 .venv/
+/outreach/round1/hood_firms.json

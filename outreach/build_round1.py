@@ -24,7 +24,7 @@ R1 = ROOT / "outreach" / "round1"
 OFFER = json.loads((ROOT / "site" / "offer.json").read_text())
 SITE, PRICE = OFFER["site"], OFFER["price_usd"]
 SUBSTACK = "https://randomaidan.substack.com/p/business-prototypes"
-TARGET = {"refrigeration": 26, "pest": 14, "hood": 10}  # 50 across three segments
+TARGET = {"refrigeration": 28, "pest": 15, "hood": 7}  # 50 across three segments; 7 is every MN hood cleaner with a printed email
 TRADE_NOUN = {"refrigeration": "a cooler out of temp", "pest": "pests", "hood": "a dirty hood"}
 TRADE_FEED = {"refrigeration": "refrigeration", "pest": "pest", "hood": "hood"}
 
