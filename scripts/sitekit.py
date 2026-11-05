@@ -3,7 +3,7 @@ feed for /api/data (private/bundle/full.json.gz, uploaded by scripts/deploy.py a
 
 The free slice is: the sample rows with the paid fields stripped, every flag's dot on the map
 (rounded to ~100 m), and the counts. Nothing else of the feed ever lands in site/.
-Ported from ~/Desktop/mpls-new-rentals/scripts/sitekit.py (product-paywall skill).
+Ported from ~/Desktop/workspace/mpls-new-rentals/scripts/sitekit.py (product-paywall skill).
 """
 import gzip, json
 from pathlib import Path

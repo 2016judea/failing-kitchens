@@ -53,11 +53,11 @@ read instead).
 
 ## The paywall
 
-Ported from `~/Desktop/mpls-new-rentals` (product-paywall skill). `site/` ships only the free
+Ported from `~/Desktop/workspace/mpls-new-rentals` (product-paywall skill). `site/` ships only the free
 slice; `/api/data` serves `private/bundle/full.json.gz` (uploaded as `api/_full/`) to a
 password. The password is minted at Stripe embedded Checkout (`POST /api/checkout`), rides in
 the invoice footer, and is emailed by the shared Stripe router
-(`~/Desktop/stripe-router`, product `failing-kitchens`) through `POST /api/stripe-webhook`.
+(`~/Desktop/workspace/stripe-router`, product `failing-kitchens`) through `POST /api/stripe-webhook`.
 `GET /api/session-status` is the return page's check. Comp password:
 `python3 scripts/issue_password.py "comp:<label>"`. Lost password:
 `python3 scripts/fulfil.py <session_id>`.

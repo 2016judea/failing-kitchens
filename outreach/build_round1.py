@@ -3,7 +3,7 @@
 
 Recipients: private/vendors_overture.json (HVAC-R, appliance repair, pest control; Overture Places,
 CC BY 4.0) plus outreach/round1/hood_firms.json (hood cleaners, each email read off the firm's own
-site, dated). Deduped against ~/Desktop/outreach-ledger/outreach.duckdb `contacted`.
+site, dated). Deduped against ~/Desktop/workspace/outreach-ledger/outreach.duckdb `contacted`.
 
 Own-record opener: the flagged kitchen in the vendor's trade nearest their shop, inside the current
 window (BUSINESS brief 2026-10-18). A vendor with no flagged kitchen in their trade this window is
@@ -77,7 +77,7 @@ def main():
     if hood_path.exists():
         for h in json.loads(hood_path.read_text()):
             vendors.append({**h, "trade": "hood", "category": "hood_cleaning"})
-    con = duckdb.connect(str(Path.home() / "Desktop/outreach-ledger/outreach.duckdb"), read_only=True)
+    con = duckdb.connect(str(Path.home() / "Desktop/workspace/outreach-ledger/outreach.duckdb"), read_only=True)
     contacted = {r[0].lower() for r in con.execute("select recipient_key from contacted").fetchall()}
     seen, rows = set(), []
     for v in vendors:

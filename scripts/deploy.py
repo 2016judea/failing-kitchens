@@ -8,7 +8,7 @@ Not the CLI: `vercel deploy --prod` has returned BLOCKED on this account with no
 same files posted to /v13/deployments went READY. This polls readyState and exits non-zero on
 anything but READY. Curl the live URL for a string only the new build contains afterwards.
 
-Needs VERCEL_TOKEN; --setup also needs STRIPE_SECRET_KEY and MAILGUN_* (all in ~/Desktop/bricks/.env).
+Needs VERCEL_TOKEN; --setup also needs STRIPE_SECRET_KEY and MAILGUN_* (all in ~/Desktop/workspace/bricks/.env).
 ACCESS_SECRET is generated once into .env (gitignored) and pushed to Vercel by --setup.
 """
 import hashlib, json, os, secrets, sys, time, urllib.error, urllib.request
